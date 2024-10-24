@@ -592,6 +592,16 @@ with st.sidebar:
         except Exception as e:
             st.error(f"Error clearing cache: {e}")
     
+    # New button to delete the scraper.log file
+    if st.button("Delete Scraper Log", key="delete_log"):
+        try:
+            os.remove('cache/scraper.log')
+            st.success("Scraper log deleted successfully!")
+        except FileNotFoundError:
+            st.info("No log file found. Log is already empty.")
+        except Exception as e:
+            st.error(f"Error deleting log file: {e}")
+    
     st.markdown("""
     ### Tips for best results:
     1. Start with smaller searches (1-2 roles/locations)
@@ -622,6 +632,7 @@ with st.sidebar:
     st.title("Cache Statistics")
     st.write(f"Cache hits: {search_cache.cache_hits}")
     st.write(f"Cache misses: {search_cache.cache_misses}")
+
 
 
 

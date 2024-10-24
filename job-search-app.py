@@ -25,7 +25,7 @@ st.set_page_config(
 
 # Set up logging
 logging.basicConfig(
-    filename='cache/company_extraction.log',
+    filename='cache/scraper.log',
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
@@ -116,11 +116,11 @@ def construct_google_query(job_roles, locations, time_range, job_levels):
         elif time_range == "Past year":
             date_filter = "&tbs=qdr:y"
     
-    excluded_sites = ' '.join([f'-site:{site}' for site in ['indeed.com', 'linkedin.com', 'glassdoor.com', 'monster.com', 'ziprecruiter.com', 'levels.fyi']])
+    excluded_sites = ' '.join([f'-site:{site}' for site in ['indeed.com', 'linkedin.com', 'glassdoor.com', 'monster.com', 'ziprecruiter.com', 'levels.fyi', 'higheredjobs.com', 'environmentalcareer.com', 'zippia.com', 'randstadusa.com', 'stryker.com', 'wiverse.com', 'theplacementexchange.org', 'talent.difc', 'builtin.com', '5amventures.com']])
     base_query = f'({job_query}) ({location_query}) ({level_query}) (careers OR "job openings" OR "we\'re hiring") {excluded_sites}'
     return base_query, date_filter
 
-def get_google_search_results(query, date_filter, num_results=25, max_retries=3):
+def get_google_search_results(query, date_filter, num_results=10, max_retries=3):
     """Enhanced Google search function with better anti-bot detection avoidance"""
     # Check cache first
     cache_key = f"{query}{date_filter}"

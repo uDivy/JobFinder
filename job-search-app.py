@@ -116,7 +116,7 @@ def construct_google_query(job_roles, locations, time_range, job_levels):
         elif time_range == "Past year":
             date_filter = "&tbs=qdr:y"
     
-    excluded_sites = ' '.join([f'-site:{site}' for site in ['indeed.com', 'linkedin.com', 'glassdoor.com', 'monster.com', 'ziprecruiter.com', 'levels.fyi', 'higheredjobs.com', 'environmentalcareer.com', 'zippia.com', 'randstadusa.com', 'stryker.com', 'wiverse.com', 'theplacementexchange.org', 'talent.difc', 'builtin.com', '5amventures.com']])
+    excluded_sites = ' '.join([f'-site:{site}' for site in ['indeed.com', 'linkedin.com', 'glassdoor.com', 'monster.com', 'ziprecruiter.com', 'levels.fyi', 'higheredjobs.com', 'environmentalcareer.com', 'zippia.com', 'randstadusa.com', 'stryker.com', 'wiverse.com', 'theplacementexchange.org', 'talent.difc', 'builtin.com', '5amventures.com', 'wellfound.com','reddit.com']])
     base_query = f'({job_query}) ({location_query}) ({level_query}) (careers OR "job openings" OR "we\'re hiring") {excluded_sites}'
     return base_query, date_filter
 

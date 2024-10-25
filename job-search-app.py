@@ -121,7 +121,7 @@ def construct_google_query(job_roles, locations, time_range, job_levels):
         'levels.fyi', 'higheredjobs.com', 'environmentalcareer.com', 'zippia.com', 'randstadusa.com', 
         'stryker.com', 'wiverse.com', 'theplacementexchange.org', 'talent.difc', 'builtin.com', 
         '5amventures.com', 'wellfound.com','reddit.com','squarepeghires.com','gracklehq.com',
-        'tata.com','sulekha.com', 'campusbuilding.com', 'foxcareers.com', 'gracklehq.com',
+        'tata.com','sulekha.com', 'campusbuilding.com', 'foxcareers.com',
         'jobmonkey.com', 'aijobs.net'
     ]])
     base_query = f'({job_query}) ({location_query}) ({level_query}) (careers OR "job openings" OR "we\'re hiring") {excluded_sites}'

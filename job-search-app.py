@@ -525,14 +525,14 @@ st.write("Find company career pages based on job roles, locations, and experienc
 
 # Predefined lists
 default_roles = [
-    "Data Scientist", "Machine Learning Engineer", "Data Engineer",
+    "Junior Data Scientist", "Machine Learning Engineer", "Data Engineer",
     "Generative AI Engineer", "AI Engineer", "Medical AI", "Healthcare AI",
     "Clinical Data"
 ]
 
 default_locations = [
     "San Francisco", "Los Angeles", "San Diego", "Seattle", 
-    "Spokane", "Austin", "Dallas", "Houston"
+    "Spokane", "Hillsboro", "Portland", "Austin", "Dallas", "Houston"
 ]
 
 # Initialize session state for custom inputs

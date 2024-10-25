@@ -25,7 +25,7 @@ st.set_page_config(
 
 # Set up logging
 logging.basicConfig(
-    filename='cache/scraper.log',
+    filename='cache/scraper.txt',
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
@@ -375,7 +375,7 @@ def extract_job_info(snippet):
 
 def create_results_table(companies, selected_roles):
     """
-    Create a table from the search results with clickable Career Page links.
+    Create a table from the search results with clickable Career Page links and an editable status column.
     """
     table_data = []
     for i, company in enumerate(companies, 1):
@@ -388,42 +388,81 @@ def create_results_table(companies, selected_roles):
             'Career Page': f'<a href="{company["url"]}" target="_blank">{company["url"]}</a>',
             'Job Roles': job_roles,
             'Posted Time': posted_time,
-            'Salary Range': salary_range
+            'Salary Range': salary_range,
+            'Status': 'TBD'  # New column with default value
         })
     return pd.DataFrame(table_data)
 
 def display_filtered_table():
     if st.session_state.results_table is not None:
-        # Add filters for State, Job Roles, and Company
-        st.write("Filter Results:")
-        col1, col2, col3 = st.columns(3)
+
+        # Add a search bar for filtering by company name
+        search_term = st.text_input("Search by Company Name:", "")
         
+        # Add filters for State, Job Roles, Company, and Status
+        st.write("Filter Results:")
+        col1, col2, col3, col4 = st.columns(4)
+
         with col1:
             filter_state = st.multiselect("Filter by State:", options=['All'] + list(st.session_state.results_table['State'].unique()))
-        
+
         with col2:
             filter_roles = st.multiselect("Filter by Job Roles:", options=['All'] + list(st.session_state.results_table['Job Roles'].unique()))
-        
+
         with col3:
             filter_company = st.multiselect("Filter by Company:", options=['All'] + list(st.session_state.results_table['Company'].unique()))
-        
+
+        with col4:
+            filter_status = st.multiselect("Filter by Status:", options=['All', 'Applied', 'TBD', 'Later'])
+
         # Apply filters
         filtered_table = st.session_state.results_table.copy()
-        
+
+        # Apply search filter
+        if search_term:
+            filtered_table = filtered_table[filtered_table['Company'].str.contains(search_term, case=False, na=False)]
+
         if filter_state and 'All' not in filter_state:
             filtered_table = filtered_table[filtered_table['State'].isin(filter_state)]
-        
+
         if filter_roles and 'All' not in filter_roles:
             filtered_table = filtered_table[filtered_table['Job Roles'].apply(lambda x: any(role in x for role in filter_roles))]
-        
+
         if filter_company and 'All' not in filter_company:
             filtered_table = filtered_table[filtered_table['Company'].isin(filter_company)]
-        
+
+        if filter_status and 'All' not in filter_status:
+            filtered_table = filtered_table[filtered_table['Status'].isin(filter_status)]
+
         # Display the filtered table
         if not filtered_table.empty:
-            with st.container():
-                st.write(filtered_table.to_html(escape=False, index=False, classes='dataframe'), unsafe_allow_html=True)
-            
+            st.write(filtered_table.to_html(escape=False, index=False, classes='dataframe'), unsafe_allow_html=True)
+
+            # Status selection displayed after the table
+            st.write("Select Status for Each Company:")
+            for index, row in filtered_table.iterrows():
+                # Use a unique key for each selectbox based on the company index and name
+                status_key = f"status_{index}_{row['Company']}"  # Unique key for each company and index
+
+                # Initialize the status in session state if not already set
+                if status_key not in st.session_state:
+                    st.session_state[status_key] = row['Status']  # Set initial status
+
+                # Create the selectbox
+                status = st.selectbox(
+                    f"Status for {index + 1}: {row['Company']}",
+                    options=['Applied', 'TBD', 'Later'],
+                    index=['Applied', 'TBD', 'Later'].index(st.session_state[status_key]),
+                    key=status_key
+                )
+
+                # Update the session state immediately after selection
+                st.session_state.results_table.at[row.name, 'Status'] = status  # Update the session state
+
+            # Add Refresh Button below the status selection
+            if st.button("Refresh"):
+                st.success("Page Refreshed! 🍹")  # Display the prompt with a glass of juice emoji
+
             # Prepare CSV download (without HTML tags)
             csv_data = filtered_table.copy()
             csv_data['Career Page'] = csv_data['Career Page'].apply(lambda x: x.split('"')[1])  # Extract URL from HTML
@@ -595,7 +634,7 @@ with st.sidebar:
     # New button to delete the scraper.log file
     if st.button("Delete Scraper Log", key="delete_log"):
         try:
-            os.remove('cache/scraper.log')
+            os.remove('cache/scraper.txt')
             st.success("Scraper log deleted successfully!")
         except FileNotFoundError:
             st.info("No log file found. Log is already empty.")
@@ -613,7 +652,7 @@ with st.sidebar:
     st.markdown("### Debug Options")
     if st.button("View Debug Logs"):
         try:
-            with open('cache/scraper.log', 'r') as f:
+            with open('cache/scraper.txt', 'r') as f:
                 st.code(f.read())
         except FileNotFoundError:
             st.info("No debug logs found")
@@ -632,6 +671,23 @@ with st.sidebar:
     st.title("Cache Statistics")
     st.write(f"Cache hits: {search_cache.cache_hits}")
     st.write(f"Cache misses: {search_cache.cache_misses}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

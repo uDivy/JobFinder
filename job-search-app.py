@@ -25,7 +25,7 @@ st.set_page_config(
 
 # Set up logging
 logging.basicConfig(
-    filename='cache/scraper.txt',
+    filename='cache/scraper.log',
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
@@ -116,11 +116,18 @@ def construct_google_query(job_roles, locations, time_range, job_levels):
         elif time_range == "Past year":
             date_filter = "&tbs=qdr:y"
     
-    excluded_sites = ' '.join([f'-site:{site}' for site in ['indeed.com', 'linkedin.com', 'glassdoor.com', 'monster.com', 'ziprecruiter.com', 'levels.fyi', 'higheredjobs.com', 'environmentalcareer.com', 'zippia.com', 'randstadusa.com', 'stryker.com', 'wiverse.com', 'theplacementexchange.org', 'talent.difc', 'builtin.com', '5amventures.com', 'wellfound.com','reddit.com']])
+    excluded_sites = ' '.join([f'-site:{site}' for site in [
+        'indeed.com', 'linkedin.com', 'glassdoor.com', 'monster.com', 'ziprecruiter.com', 
+        'levels.fyi', 'higheredjobs.com', 'environmentalcareer.com', 'zippia.com', 'randstadusa.com', 
+        'stryker.com', 'wiverse.com', 'theplacementexchange.org', 'talent.difc', 'builtin.com', 
+        '5amventures.com', 'wellfound.com','reddit.com','squarepeghires.com','gracklehq.com',
+        'tata.com','sulekha.com', 'campusbuilding.com', 'foxcareers.com', 'gracklehq.com',
+        'jobmonkey.com', 'aijobs.net'
+    ]])
     base_query = f'({job_query}) ({location_query}) ({level_query}) (careers OR "job openings" OR "we\'re hiring") {excluded_sites}'
     return base_query, date_filter
 
-def get_google_search_results(query, date_filter, num_results=10, max_retries=3):
+def get_google_search_results(query, date_filter, num_results=25, max_retries=3):
     """Enhanced Google search function with better anti-bot detection avoidance"""
     # Check cache first
     cache_key = f"{query}{date_filter}"
@@ -632,15 +639,15 @@ with st.sidebar:
         except Exception as e:
             st.error(f"Error clearing cache: {e}")
     
-    # New button to delete the scraper.log file
-    if st.button("Delete Scraper Log", key="delete_log"):
-        try:
-            os.remove('cache/scraper.txt')
-            st.success("Scraper log deleted successfully!")
-        except FileNotFoundError:
-            st.info("No log file found. Log is already empty.")
-        except Exception as e:
-            st.error(f"Error deleting log file: {e}")
+    # # New button to delete the scraper.log file
+    # if st.button("Delete Scraper Log", key="delete_log"):
+    #     try:
+    #         os.remove('cache/scraper.log')
+    #         st.success("Scraper log deleted successfully!")
+    #     except FileNotFoundError:
+    #         st.info("No log file found. Log is already empty.")
+    #     except Exception as e:
+    #         st.error(f"Error deleting log file: {e}")
     
     st.markdown("""
     ### Tips for best results:
@@ -653,7 +660,7 @@ with st.sidebar:
     st.markdown("### Debug Options")
     if st.button("View Debug Logs"):
         try:
-            with open('cache/scraper.txt', 'r') as f:
+            with open('cache/scraper.log', 'r') as f:
                 st.code(f.read())
         except FileNotFoundError:
             st.info("No debug logs found")

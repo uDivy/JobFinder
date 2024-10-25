@@ -396,50 +396,52 @@ def create_results_table(companies, selected_roles):
 def display_filtered_table():
     if st.session_state.results_table is not None:
 
-        # Add a search bar for filtering by company name
-        search_term = st.text_input("Search by Company Name:", "")
+        # Add a search bar for filtering by company name with a grey background and a magnifying glass emoji
+        with st.container():
+            st.markdown("<style>div.row-widget.stRadio > div.widget.st-iframe {background-color: grey;}</style>", unsafe_allow_html=True)
+            search_term = st.text_input("", "", placeholder="🔍")
         
         # Add filters for State, Job Roles, Company, and Status
-        st.write("Filter Results:")
-        col1, col2, col3, col4 = st.columns(4)
+        with st.expander("Filter Results"):
+            col1, col2, col3, col4 = st.columns(4)
 
-        with col1:
-            filter_state = st.multiselect("Filter by State:", options=['All'] + list(st.session_state.results_table['State'].unique()))
+            with col1:
+                filter_state = st.multiselect("Filter by State:", options=['All'] + list(st.session_state.results_table['State'].unique()))
 
-        with col2:
-            filter_roles = st.multiselect("Filter by Job Roles:", options=['All'] + list(st.session_state.results_table['Job Roles'].unique()))
+            with col2:
+                filter_roles = st.multiselect("Filter by Job Roles:", options=['All'] + list(st.session_state.results_table['Job Roles'].unique()))
 
-        with col3:
-            filter_company = st.multiselect("Filter by Company:", options=['All'] + list(st.session_state.results_table['Company'].unique()))
+            with col3:
+                filter_company = st.multiselect("Filter by Company:", options=['All'] + list(st.session_state.results_table['Company'].unique()))
 
-        with col4:
-            filter_status = st.multiselect("Filter by Status:", options=['All', 'Applied', 'TBD', 'Later'])
+            with col4:
+                filter_status = st.multiselect("Filter by Status:", options=['All', 'Applied', 'TBD', 'Later'])
 
-        # Apply filters
-        filtered_table = st.session_state.results_table.copy()
+            # Apply filters
+            filtered_table = st.session_state.results_table.copy()
 
-        # Apply search filter
-        if search_term:
-            filtered_table = filtered_table[filtered_table['Company'].str.contains(search_term, case=False, na=False)]
+            # Apply search filter
+            if search_term:
+                filtered_table = filtered_table[filtered_table['Company'].str.contains(search_term, case=False, na=False)]
 
-        if filter_state and 'All' not in filter_state:
-            filtered_table = filtered_table[filtered_table['State'].isin(filter_state)]
+            if filter_state and 'All' not in filter_state:
+                filtered_table = filtered_table[filtered_table['State'].isin(filter_state)]
 
-        if filter_roles and 'All' not in filter_roles:
-            filtered_table = filtered_table[filtered_table['Job Roles'].apply(lambda x: any(role in x for role in filter_roles))]
+            if filter_roles and 'All' not in filter_roles:
+                filtered_table = filtered_table[filtered_table['Job Roles'].apply(lambda x: any(role in x for role in filter_roles))]
 
-        if filter_company and 'All' not in filter_company:
-            filtered_table = filtered_table[filtered_table['Company'].isin(filter_company)]
+            if filter_company and 'All' not in filter_company:
+                filtered_table = filtered_table[filtered_table['Company'].isin(filter_company)]
 
-        if filter_status and 'All' not in filter_status:
-            filtered_table = filtered_table[filtered_table['Status'].isin(filter_status)]
+            if filter_status and 'All' not in filter_status:
+                filtered_table = filtered_table[filtered_table['Status'].isin(filter_status)]
 
-        # Display the filtered table
-        if not filtered_table.empty:
-            st.write(filtered_table.to_html(escape=False, index=False, classes='dataframe'), unsafe_allow_html=True)
+            # Display the filtered table
+            if not filtered_table.empty:
+                st.write(filtered_table.to_html(escape=False, index=False, classes='dataframe'), unsafe_allow_html=True)
 
-            # Status selection displayed after the table
-            st.write("Select Status for Each Company:")
+        # Status selection displayed after the table, now collapsible
+        with st.expander("Select Status for Each Company"):
             for index, row in filtered_table.iterrows():
                 # Use a unique key for each selectbox based on the company index and name
                 status_key = f"status_{index}_{row['Company']}"  # Unique key for each company and index
@@ -459,22 +461,22 @@ def display_filtered_table():
                 # Update the session state immediately after selection
                 st.session_state.results_table.at[row.name, 'Status'] = status  # Update the session state
 
-            # Add Refresh Button below the status selection
-            if st.button("Refresh"):
-                st.success("Page Refreshed! 🍹")  # Display the prompt with a glass of juice emoji
+        # Add Refresh Button below the status selection
+        if st.button("Refresh"):
+            st.success("Page Refreshed! 🍹")  # Display the prompt with a glass of juice emoji
 
-            # Prepare CSV download (without HTML tags)
-            csv_data = filtered_table.copy()
-            csv_data['Career Page'] = csv_data['Career Page'].apply(lambda x: x.split('"')[1])  # Extract URL from HTML
-            csv = csv_data.to_csv(index=False)
-            st.download_button(
-                label="Download Filtered Results as CSV",
-                data=csv,
-                file_name="filtered_company_career_pages.csv",
-                mime="text/csv"
-            )
-        else:
-            st.warning("No results match the selected filters.")
+        # Prepare CSV download (without HTML tags)
+        csv_data = filtered_table.copy()
+        csv_data['Career Page'] = csv_data['Career Page'].apply(lambda x: x.split('"')[1])  # Extract URL from HTML
+        csv = csv_data.to_csv(index=False)
+        st.download_button(
+            label="Download Filtered Results as CSV",
+            data=csv,
+            file_name="filtered_company_career_pages.csv",
+            mime="text/csv"
+        )
+    else:
+        st.warning("No results match the selected filters.")
 
 # Add custom CSS for responsive table
 st.markdown("""
@@ -544,44 +546,45 @@ if 'results_table' not in st.session_state:
     st.session_state.results_table = None
 
 # Input fields
-with st.form("search_form"):
-    # Job Roles
-    selected_roles = st.multiselect(
-        "Select Job Roles:",
-        options=default_roles + st.session_state.custom_roles,
-        default=[]
-    )
-    
-    # Custom Role Input
-    custom_role = st.text_input("Enter custom job role:")
-    add_role_button = st.form_submit_button("Add Custom Role")
-    
-    # Locations
-    selected_locations = st.multiselect(
-        "Select Locations:",
-        options=default_locations + st.session_state.custom_locations,
-        default=[]
-    )
-    
-    # Custom Location Input
-    custom_location = st.text_input("Enter custom location:")
-    add_location_button = st.form_submit_button("Add Custom Location")
-    
-    # Job Levels
-    selected_levels = st.multiselect(
-        "Select Job Levels:",
-        options=job_levels,
-        default=[]
-    )
-    
-    # Time Range
-    time_range = st.selectbox(
-        "Show jobs posted within:",
-        options=["Past 24 hours", "Past week", "Past month", "Past 3 months", "Past year", "Any time"],
-        index=0  # Default to "Past 24 hours"
-    )
-    
-    search_submitted = st.form_submit_button("Search Career Pages")
+with st.expander("Search Form"):
+    with st.form("search_form"):
+        # Job Roles
+        selected_roles = st.multiselect(
+            "Select Job Roles:",
+            options=default_roles + st.session_state.custom_roles,
+            default=[]
+        )
+        
+        # Custom Role Input
+        custom_role = st.text_input("Enter custom job role:")
+        add_role_button = st.form_submit_button("Add Custom Role")
+        
+        # Locations
+        selected_locations = st.multiselect(
+            "Select Locations:",
+            options=default_locations + st.session_state.custom_locations,
+            default=[]
+        )
+        
+        # Custom Location Input
+        custom_location = st.text_input("Enter custom location:")
+        add_location_button = st.form_submit_button("Add Custom Location")
+        
+        # Job Levels
+        selected_levels = st.multiselect(
+            "Select Job Levels:",
+            options=job_levels,
+            default=[]
+        )
+        
+        # Time Range
+        time_range = st.selectbox(
+            "Show jobs posted within:",
+            options=["Past 24 hours", "Past week", "Past month", "Past 3 months", "Past year", "Any time"],
+            index=0  # Default to "Past 24 hours"
+        )
+        
+        search_submitted = st.form_submit_button("Search Career Pages")
 
 # Handle custom inputs
 if add_role_button and custom_role and custom_role not in st.session_state.custom_roles:
@@ -604,8 +607,6 @@ if search_submitted:
         companies = search_for_companies(selected_roles, selected_locations, selected_levels, time_range)
         
         if companies:
-            st.write("### Company Career Pages")
-            
             # Create the results table and store in session state
             st.session_state.results_table = create_results_table(companies, selected_roles)
             
